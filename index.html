@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日常需求 - 原型页面导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .card-description {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .card-features {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .card-features-title {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .card-feature {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .card-feature::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #52c41a;
+            font-weight: bold;
+        }
+
+        .card-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #fff3e0;
+            color: #ff9800;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .card-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            background-color: #ff5722;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        .footer p {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📋 日常需求</h1>
+            <p>功能原型页面集合</p>
+        </div>
+
+        <!-- 卡片列表 -->
+        <div class="cards-grid">
+            <a href="pda_version_management.html" class="card">
+                <span class="card-icon">📦</span>
+                <h3 class="card-title">
+                    PDA版本管理
+                    <span class="card-badge">NEW</span>
+                </h3>
+                <p class="card-description">
+                    完整的PDA版本管理系统，支持仓库端和供应商端两种类型的版本上传、下载和管理功能。
+                </p>
+                
+                <div class="card-features">
+                    <div class="card-features-title">主要功能：</div>
+                    <div class="card-feature">版本上传（支持APK文件）</div>
+                    <div class="card-feature">智能校验（类型匹配、版本一致性、去重）</div>
+                    <div class="card-feature">版本列表管理</div>
+                    <div class="card-feature">一键下载和删除</div>
+                    <div class="card-feature">仓库端/供应商端分类管理</div>
+                </div>
+                
+                <span class="card-tag">版本管理</span>
+            </a>
+
+            <!-- 可以在这里添加更多日常需求的页面 -->
+            
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>💡 点击卡片即可进入对应的原型页面</p>
+            <p style="margin-top: 10px;">© 2026 日常需求原型</p>
+        </div>
+    </div>
+
+    <script>
+        // 添加页面加载统计
+        console.log('%c📋 日常需求导航页面已加载', 'color: #667eea; font-size: 16px; font-weight: bold;');
+        console.log('可用页面数量:', document.querySelectorAll('.card').length);
+
+        // 为卡片添加点击日志
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const title = this.querySelector('.card-title').textContent.trim();
+                console.log('正在访问:', title);
+            });
+        });
+    </script>
+</body>
+</html>
