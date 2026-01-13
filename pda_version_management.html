@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDA版本管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e8e8e8;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: #1890ff;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #1890ff 0%, #0066ff 100%);
+            color: white;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(24, 144, 255, 0.3);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 模态窗口样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .upload-area {
+            border: 2px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #1890ff;
+            background-color: #f0f8ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #1890ff;
+            background-color: #e6f7ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            background-color: white;
+            border: 1px solid #d9d9d9;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-confirm {
+            background-color: #1890ff;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background-color: #0066ff;
+        }
+
+        .btn-confirm:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .required {
+            color: #ff4d4f;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: #bfbfbf;
+        }
+
+        .form-select {
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* 版本列表样式 */
+        .version-list {
+            margin-top: 30px;
+        }
+
+        .list-item {
+            background-color: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.3s, opacity 0.3s, transform 0.3s;
+        }
+
+        .list-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-color: #d9d9d9;
+        }
+
+        .list-item-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .version-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .version-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1890ff;
+            margin-bottom: 8px;
+        }
+
+        .update-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            background-color: white;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .download-btn:hover {
+            background-color: #f0f8ff;
+        }
+
+        .delete-btn:hover {
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+            background-color: #fff1f0;
+        }
+
+        .btn-icon {
+            font-size: 16px;
+        }
+
+        .btn-text {
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .list-item-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .list-item-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>PDA版本管理</h1>
+        </div>
+
+        <!-- 标签页 -->
+        <div class="tabs">
+            <div class="tab active">仓库端</div>
+            <div class="tab">供应商端</div>
+        </div>
+
+        <!-- 版本上传按钮 -->
+        <button class="upload-btn" id="uploadBtn">版本上传</button>
+
+        <!-- 版本列表 -->
+        <div class="version-list" id="versionList">
+            <!-- 列表项示例 -->
+            <div class="list-item">
+                <div class="list-item-content">
+                    <div class="version-info">
+                        <div class="version-number">v1.2.0</div>
+                        <div class="update-description">修复了扫描功能的bug，优化了界面显示效果，提升了系统稳定性</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="action-btn download-btn">
+                            <span class="btn-icon">⬇</span>
+                            <span class="btn-text">下载</span>
+                        </button>
+                        <button class="action-btn delete-btn">
+                            <span class="btn-icon">🗑</span>
+                            <span class="btn-text">删除</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-item">
+                <div class="list-item-content">
+                    <div class="version-info">
+                        <div class="version-number">v1.1.5</div>
+                        <div class="update-description">新增批量操作功能，优化数据同步速度</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="action-btn download-btn">
+                            <span class="btn-icon">⬇</span>
+                            <span class="btn-text">下载</span>
+                        </button>
+                        <button class="action-btn delete-btn">
+                            <span class="btn-icon">🗑</span>
+                            <span class="btn-text">删除</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-item">
+                <div class="list-item-content">
+                    <div class="version-info">
+                        <div class="version-number">v1.1.0</div>
+                        <div class="update-description">初始版本发布，包含基础功能</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="action-btn download-btn">
+                            <span class="btn-icon">⬇</span>
+                            <span class="btn-text">下载</span>
+                        </button>
+                        <button class="action-btn delete-btn">
+                            <span class="btn-icon">🗑</span>
+                            <span class="btn-text">删除</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传文件模态窗口 -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>版本上传</h2>
+                <button class="close-btn" id="closeBtn">&times;</button>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击或拖拽文件到此处上传</div>
+                <div class="upload-hint">支持 APK 文件</div>
+                <!-- <div class="upload-hint" style="margin-top: 5px; color: #ff9800;">文件名格式：iwms_v1.0.0_release.apk 或 iscm_v1.0.0_release.apk</div> -->
+            </div>
+
+            <input type="file" class="file-input" id="fileInput" accept=".apk">
+
+            <div class="file-info" id="fileInfo">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+
+            <!-- 表单字段 -->
+            <div class="form-group">
+                <label class="form-label">版本号 <span class="required">*</span></label>
+                <input type="text" class="form-input" id="versionInput" placeholder="请输入版本号，例如：v1.0.0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">PDA类型 <span class="required">*</span></label>
+                <select class="form-select" id="pdaTypeSelect">
+                    <option value="">请选择PDA类型</option>
+                    <option value="warehouse">仓库端</option>
+                    <option value="supplier">供应商端</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">更新说明 <span class="required">*</span></label>
+                <textarea class="form-textarea" id="updateNotes" rows="4" placeholder="请输入更新说明"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="cancelBtn">取消</button>
+                <button class="btn btn-confirm" id="confirmBtn" disabled>确认上传</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取元素
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadModal = document.getElementById('uploadModal');
+        const closeBtn = document.getElementById('closeBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const versionInput = document.getElementById('versionInput');
+        const pdaTypeSelect = document.getElementById('pdaTypeSelect');
+        const updateNotes = document.getElementById('updateNotes');
+
+        let selectedFile = null;
+
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 打开模态窗口
+        uploadBtn.addEventListener('click', () => {
+            uploadModal.classList.add('show');
+        });
+
+        // 关闭模态窗口
+        function closeModal() {
+            uploadModal.classList.remove('show');
+            resetUpload();
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // 点击模态窗口外部关闭
+        uploadModal.addEventListener('click', (e) => {
+            if (e.target === uploadModal) {
+                closeModal();
+            }
+        });
+
+        // 点击上传区域
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        // 处理文件
+        function handleFile(file) {
+            if (!file) return;
+
+            selectedFile = file;
+            fileName.textContent = `文件名：${file.name}`;
+            fileSize.textContent = `文件大小：${formatFileSize(file.size)}`;
+            fileInfo.classList.add('show');
+            validateForm();
+        }
+
+        // 验证表单
+        function validateForm() {
+            const hasFile = selectedFile !== null;
+            const hasVersion = versionInput.value.trim() !== '';
+            const hasPdaType = pdaTypeSelect.value !== '';
+            const hasNotes = updateNotes.value.trim() !== '';
+
+            confirmBtn.disabled = !(hasFile && hasVersion && hasPdaType && hasNotes);
+        }
+
+        // 监听表单输入
+        versionInput.addEventListener('input', validateForm);
+        pdaTypeSelect.addEventListener('change', validateForm);
+        updateNotes.addEventListener('input', validateForm);
+
+        // 处理下载按钮点击
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.download-btn')) {
+                const listItem = e.target.closest('.list-item');
+                const versionNumber = listItem.querySelector('.version-number').textContent;
+                const updateDesc = listItem.querySelector('.update-description').textContent;
+                
+                alert(`正在下载版本：${versionNumber}\n更新说明：${updateDesc}`);
+                console.log('下载版本：', versionNumber);
+                
+                // 这里可以添加实际的下载逻辑
+                // window.location.href = `/api/download?version=${versionNumber}`;
+            }
+        });
+
+        // 处理删除按钮点击
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-btn')) {
+                const listItem = e.target.closest('.list-item');
+                const versionNumber = listItem.querySelector('.version-number').textContent;
+                
+                if (confirm(`确定要删除版本 ${versionNumber} 吗？\n此操作不可恢复！`)) {
+                    // 添加删除动画
+                    listItem.style.opacity = '0';
+                    listItem.style.transform = 'translateX(20px)';
+                    
+                    setTimeout(() => {
+                        listItem.remove();
+                        console.log('已删除版本：', versionNumber);
+                        
+                        // 这里可以添加实际的删除API调用
+                        // fetch(`/api/version/${versionNumber}`, { method: 'DELETE' })
+                        //     .then(response => response.json())
+                        //     .then(data => console.log(data));
+                    }, 300);
+                }
+            }
+        });
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // 重置上传
+        function resetUpload() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            versionInput.value = '';
+            pdaTypeSelect.value = '';
+            updateNotes.value = '';
+            confirmBtn.disabled = true;
+        }
+
+        // 确认上传
+        confirmBtn.addEventListener('click', () => {
+            if (selectedFile) {
+                const fileName = selectedFile.name;
+                const pdaTypeValue = pdaTypeSelect.value;
+                const pdaTypeText = pdaTypeSelect.options[pdaTypeSelect.selectedIndex].text;
+                const versionNumber = versionInput.value.trim();
+                
+                // 校验1: PDA类型和文件名开头匹配
+                const filePrefix = fileName.toLowerCase().split('_')[0];
+                let expectedPrefix = '';
+                
+                if (pdaTypeValue === 'warehouse') {
+                    expectedPrefix = 'iwms';
+                } else if (pdaTypeValue === 'supplier') {
+                    expectedPrefix = 'iscm';
+                }
+                
+                if (filePrefix !== expectedPrefix) {
+                    alert(`文件名错误！\n\n选择的PDA类型为"${pdaTypeText}"，文件名应以"${expectedPrefix}"开头\n当前文件：${fileName}`);
+                    return;
+                }
+                
+                // 校验2: 版本号和文件名中的版本号一致
+                const versionMatch = fileName.match(/_(v?\d+\.\d+\.\d+)_/i);
+                if (!versionMatch) {
+                    alert('文件名格式错误！\n\n无法从文件名中识别版本号\n正确格式示例：iwms_v1.0.1_release.apk');
+                    return;
+                }
+                
+                let fileVersion = versionMatch[1].toLowerCase();
+                let inputVersion = versionNumber.toLowerCase();
+                
+                // 统一格式，确保都有v前缀或都没有v前缀进行比较
+                if (!fileVersion.startsWith('v')) {
+                    fileVersion = 'v' + fileVersion;
+                }
+                if (!inputVersion.startsWith('v')) {
+                    inputVersion = 'v' + inputVersion;
+                }
+                
+                if (fileVersion !== inputVersion) {
+                    alert(`版本号不匹配！\n\n文件名中的版本号：${fileVersion}\n您填写的版本号：${versionNumber}\n\n请确保两者一致`);
+                    return;
+                }
+                
+                // 校验3: 版本号不能重复
+                const existingVersions = document.querySelectorAll('.version-number');
+                const normalizedInputVersion = inputVersion.startsWith('v') ? inputVersion : 'v' + inputVersion;
+                
+                for (let versionElement of existingVersions) {
+                    if (versionElement.textContent.toLowerCase() === normalizedInputVersion) {
+                        alert(`版本号重复！\n\n版本 ${normalizedInputVersion} 已经存在于列表中\n请使用不同的版本号`);
+                        return;
+                    }
+                }
+                
+                // 所有校验通过，准备上传
+                const uploadData = {
+                    fileName: fileName,
+                    fileSize: formatFileSize(selectedFile.size),
+                    version: versionNumber,
+                    pdaType: pdaTypeText,
+                    updateNotes: updateNotes.value.trim()
+                };
+
+                console.log('上传数据：', uploadData);
+                
+                alert(
+                    `校验通过！准备上传版本信息：\n\n` +
+                    `文件名：${uploadData.fileName}\n` +
+                    `文件大小：${uploadData.fileSize}\n` +
+                    `版本号：${uploadData.version}\n` +
+                    `PDA类型：${uploadData.pdaType}\n` +
+                    `更新说明：${uploadData.updateNotes}`
+                );
+                
+                // 添加到列表顶部
+                addVersionToList(uploadData);
+                
+                // 这里可以添加实际的文件上传逻辑
+                // 例如使用 FormData 和 fetch API 上传到服务器
+                /*
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('version', uploadData.version);
+                formData.append('pdaType', pdaTypeSelect.value);
+                formData.append('updateNotes', uploadData.updateNotes);
+                
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.json())
+                  .then(data => {
+                      console.log(data);
+                      addVersionToList(uploadData);
+                  })
+                  .catch(error => console.error(error));
+                */
+                
+                closeModal();
+            }
+        });
+
+        // 添加版本到列表
+        function addVersionToList(data) {
+            const versionList = document.getElementById('versionList');
+            
+            const listItem = document.createElement('div');
+            listItem.className = 'list-item';
+            listItem.style.opacity = '0';
+            listItem.style.transform = 'translateY(-20px)';
+            
+            listItem.innerHTML = `
+                <div class="list-item-content">
+                    <div class="version-info">
+                        <div class="version-number">${data.version}</div>
+                        <div class="update-description">${data.updateNotes}</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="action-btn download-btn">
+                            <span class="btn-icon">⬇</span>
+                            <span class="btn-text">下载</span>
+                        </button>
+                        <button class="action-btn delete-btn">
+                            <span class="btn-icon">🗑</span>
+                            <span class="btn-text">删除</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // 插入到列表顶部
+            versionList.insertBefore(listItem, versionList.firstChild);
+            
+            // 添加入场动画
+            setTimeout(() => {
+                listItem.style.transition = 'all 0.3s';
+                listItem.style.opacity = '1';
+                listItem.style.transform = 'translateY(0)';
+            }, 10);
+        }
+    </script>
+</body>
+</html>
