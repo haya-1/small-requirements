@@ -717,6 +717,7 @@
                 // 校验1: PDA类型和文件名开头匹配
                 const filePrefix = fileName.toLowerCase().split('_')[0];
                 let expectedPrefix = '';
+                let filePdaType = '';
                 
                 if (pdaTypeValue === 'warehouse') {
                     expectedPrefix = 'iwms';
@@ -724,8 +725,15 @@
                     expectedPrefix = 'iscm';
                 }
                 
+                // 识别文件的PDA类型
+                if (filePrefix === 'iwms') {
+                    filePdaType = '仓库端';
+                } else if (filePrefix === 'iscm') {
+                    filePdaType = '供应商端';
+                }
+                
                 if (filePrefix !== expectedPrefix) {
-                    alert(`文件名错误！\n\n选择的PDA类型为"${pdaTypeText}"，文件名应以"${expectedPrefix}"开头\n当前文件：${fileName}`);
+                    alert(`文件为${filePdaType}安装包，与填写的PDA类型不一致`);
                     return;
                 }
                 
@@ -748,7 +756,7 @@
                 }
                 
                 if (fileVersion !== inputVersion) {
-                    alert(`版本号不匹配！\n\n文件名中的版本号：${fileVersion}\n您填写的版本号：${versionNumber}\n\n请确保两者一致`);
+                    alert(`文件为${fileVersion}版本，与填写的版本号不一致`);
                     return;
                 }
                 
